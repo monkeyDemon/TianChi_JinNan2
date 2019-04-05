@@ -1,0 +1,6 @@
+code/Detectron/detectron/datasets/data/jinnan2/:
+code/Detectron/.github/
+code/classify_keras/train_dataset/
+code/classify_keras/valid_dataset/
+code/classify_keras/record/events.out*
+code/classify_keras/record/*.out

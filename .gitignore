@@ -15,3 +15,4 @@ code/model/normal_visualization_jpg/*.jpg
 code/model/object_detection_model/*.log
 code/model/object_detection_model/*.pkl
 code/model/test_visualization_jpg/*.jpg
+submit/json/*.json

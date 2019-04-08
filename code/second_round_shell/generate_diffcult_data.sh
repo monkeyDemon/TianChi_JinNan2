@@ -6,7 +6,7 @@ python ../second_round_pyfile/paste_restricted_object2normal.py \
 --img_save_dir ../../data/ProcessData/train_val_jpg \
 --input_json_path ../../data/ProcessData/train_position.json \
 --output_json_path ../../data/ProcessData/train_diffcult.json \
---generate_num 600 \
+--generate_num 750 \
 --max_restricted_num 1
 
 #--restricted_dir ../../data/ProcessData/restricted_info\

@@ -224,7 +224,13 @@ def main(args):
         im_name_ = im_name.split('/')[-1][:-4]
 
         restricted_confidence = judgement_dict[im_name.split('/')[-1]]
-        judgement, category_cnt, _ = judgement_function(restricted_confidence, cls_boxes,classfied_confidence)
+        #simple apply judgement
+        #judgement, category_cnt, _ = judgement_function(restricted_confidence, cls_boxes,classfied_confidence)
+        if restricted_confidence >=  classfied_confidence
+            judgement = True
+        else:
+            judgement = False
+
         if judgement: # restricted
             if cls_segms is not None:
                 for class_id in range(1,6):

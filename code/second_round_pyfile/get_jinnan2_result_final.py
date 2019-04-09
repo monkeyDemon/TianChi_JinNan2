@@ -226,7 +226,7 @@ def main(args):
         restricted_confidence = judgement_dict[im_name.split('/')[-1]]
         #simple apply judgement
         #judgement, category_cnt, _ = judgement_function(restricted_confidence, cls_boxes,classfied_confidence)
-        if restricted_confidence >=  classfied_confidence:
+        if restricted_confidence > classfied_confidence:
             judgement = True
         else:
             judgement = False

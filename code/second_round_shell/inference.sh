@@ -8,7 +8,7 @@ python ../second_round_pyfile/get_jinnan2_result_final.py --cfg ../config/e2e_ma
 --image-ext jpg \
 --output-ext jpg \
 --classfied_confidence 0.1 \
---wts ../model/mask_model/train/jinnan2_train/generalized_rcnn/model_iter89999.pkl \
+--wts ../model/mask_model/train/jinnan2_train/generalized_rcnn/model_iter129999.pkl \
 --judgement_json_path ../../data/ProcessData/cnn_judgement_result.json \
 --im_or_folder ../../data/ProcessData/jinnan2_round2_test_a_20190401_sigmoid \
 --npy_save_dir ../model/npy

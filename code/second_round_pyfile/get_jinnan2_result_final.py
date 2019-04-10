@@ -243,6 +243,21 @@ def main(args):
                             mask_ = mask_util.decode(class_content)
                             save_numpy = save_numpy | mask_
                         np.save(class_save_path,save_numpy)
+                vis_utils.vis_one_image(
+                  im[:, :, ::-1],  # BGR -> RGB for visualization
+                  im_name,
+                  args.output_dir,
+                  cls_boxes,
+                  cls_segms,
+                  cls_keyps,
+                  dataset=dummy_coco_dataset,
+                  box_alpha=0.3,
+                  show_class=True,
+                  thresh=args.thresh,
+                  kp_thresh=args.kp_thresh,
+                  ext=args.output_ext,
+                  out_when_no_box=args.out_when_no_box
+                  )  
             else:
                 save_numpy = np.zeros((height, width), dtype = np.uint8)
                 for class_id in range(1,6):
@@ -272,21 +287,21 @@ def main(args):
                     #print(j['counts'])
                     #print(pymk.decode(j['counts']))
         #print("$$$$$$$$$$$$$$$$$$$$$$")
-        vis_utils.vis_one_image(
-            im[:, :, ::-1],  # BGR -> RGB for visualization
-            im_name,
-            args.output_dir,
-            cls_boxes,
-            cls_segms,
-            cls_keyps,
-            dataset=dummy_coco_dataset,
-            box_alpha=0.3,
-            show_class=True,
-            thresh=args.thresh,
-            kp_thresh=args.kp_thresh,
-            ext=args.output_ext,
-            out_when_no_box=args.out_when_no_box
-        )
+        #vis_utils.vis_one_image(
+            #im[:, :, ::-1],  # BGR -> RGB for visualization
+            #im_name,
+            #args.output_dir,
+            #cls_boxes,
+            #cls_segms,
+            #cls_keyps,
+            #dataset=dummy_coco_dataset,
+            #box_alpha=0.3,
+            #show_class=True,
+            #thresh=args.thresh,
+            #kp_thresh=args.kp_thresh,
+            #ext=args.output_ext,
+            #out_when_no_box=args.out_when_no_box
+       #)
 
 
 if __name__ == '__main__':

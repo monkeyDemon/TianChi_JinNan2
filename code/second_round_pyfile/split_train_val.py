@@ -96,16 +96,21 @@ for ima in Jinnan2_data["images"]:
 '''
 
 #rain_rate = 0.95
-val_rate =args.val_rate
+val_rate = args.val_rate
+#print(val_rate)
 train_rate = 1 - val_rate
-
+#print(train_rate)
 train_num = int(len(image_id) * train_rate)
-val_num = int(len(image_id) * val_rate)
+#print(train_num)
+val_num = int(len(image_id) - train_num)
+#print(val_num)
 
 train_id = random.sample(image_id,train_num)
+#print(train_id)
 
 train_josn = {}
 val_json = {}
+#print(Jinnan2_data['categories'])
 train_josn['categories'] = Jinnan2_data['categories']
 val_json['categories'] = Jinnan2_data['categories']
 
@@ -114,28 +119,40 @@ val_json['info'] = Jinnan2_data['info']
 
 train_josn['licenses'] = Jinnan2_data['licenses']
 val_json['licenses'] = Jinnan2_data['licenses']
+print(Jinnan2_data['licenses'])
 
 train_annotations = []
 val_annotations = []
+ann_len = len(Jinnan2_data["annotations"])
+ann_id = 1
 for anno in Jinnan2_data["annotations"]:
     if anno['image_id'] in train_id:
         train_annotations.append(anno)
     else:
         val_annotations.append(anno)
+    if ann_id % 100 == 0:
+        print("{} annotations has done!".format(ann_id))
+    ann_id = ann_id + 1
 train_josn['annotations'] = train_annotations
 val_json['annotations'] = val_annotations
 
 train_images = []
 val_images = []
+im_id = 1
 for ima in Jinnan2_data["images"]:
     if ima['id'] in train_id:
         train_images.append(ima)
         train_image_path = restricted_jpg_dir + '/' + ima["file_name"]
         shutil.copy(train_image_path, train_jpg_save_dir)
+        #print("copy {} to train.".format(ima))
     else:
         val_images.append(ima)
         val_image_path = restricted_jpg_dir + '/' + ima["file_name"]
         shutil.copy(val_image_path, val_jpg_save_dir)
+        #print("copy {} to val.".format(ima))
+    if im_id % 100 == 0:
+        print("copy {} images to jinnan2_data".format(im_id))
+    im_id = im_id + 1
 train_josn['images'] = train_images
 val_json['images'] = val_images
         
@@ -145,11 +162,4 @@ with open(train_json_path,"w") as train_f:
 val_json_path = json_dir + "/instances_val2014.json"
 with open(val_json_path,"w") as val_f:
     json.dump(val_json,val_f)
-
-
-
-
-
-
-
 

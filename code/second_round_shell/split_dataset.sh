@@ -9,8 +9,9 @@ echo "if dataset has exist, delete it"
 rm -rf ../Detectron/detectron/datasets/data/jinnan2/*
 
 echo "start split dataset..."
-python ../first_round_pyfile/split_train_val.py --restricted_jpg_dir ../../data/ProcessData/train_val_jpg \
---input_json_path ../../data/ProcessData/train_diffcult.json
+python ../second_round_pyfile/split_train_val.py --restricted_jpg_dir ../../data/ProcessData/train_val_jpg \
+--input_json_path ../../data/ProcessData/train_diffcult.json \
+--val_rate 0.025
 #--input_json_path ../../data/Second_round_data/jinnan2_round2_train_20190401/train_restriction.json
 
 echo "finish"

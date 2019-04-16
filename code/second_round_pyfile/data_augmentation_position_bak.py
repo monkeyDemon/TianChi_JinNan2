@@ -223,8 +223,6 @@ def RandomCrop(img, bbox_info_list, p, ratio_min = 0.8, max_try_num = 10):
     return img, bbox_info_list
 
 
-# TODO: 暂未改为segmentation版本
-'''
 def RandomRotate(img, bbox_info_list, p):
     if random.random() < p:
         # get shape
@@ -248,183 +246,85 @@ def RandomRotate(img, bbox_info_list, p):
         return img_rotate, bbox_info_list
     else:   
         return img, bbox_info_list
-'''
     
-
-def RandomMerge(img1, bbox_info_list1, img2, bbox_info_list2):
-    if random.random() < 0.7:
-        # merge two image by split x
-        
-        # find split position of image1
-        rows1, cols1, channel = img1.shape
-        max_try_num = 10
-        try_num = 1
-        has_find_split = False
-        split1_x = 0
-        while try_num <= max_try_num:
-            crop_ratio = random.uniform(0.3, 0.7)
-            split1_x = int(cols1 * crop_ratio)
-            split_suitable = True
-            for bbox_info in bbox_info_list1:
-                bbox = bbox_info['bbox']
-                is_trun = is_truncate_x(split1_x, bbox)
-                if is_trun:
-                    split_suitable = False
-                    break
-            if split_suitable:
-                has_find_split = True
-                break
-            else:
-                try_num += 1
-        if has_find_split == False:
-            return img1, bbox_info_list1
-        
-        # find split position of image2
-        rows2, cols2, channel = img2.shape
-        try_num = 1
-        has_find_split = False
-        split2_x = 0
-        while try_num <= max_try_num:
-            crop_ratio = random.uniform(0.3, 0.7)
-            split2_x = int(cols2 * crop_ratio)
-            split_suitable = True
-            for bbox_info in bbox_info_list2:
-                bbox = bbox_info['bbox']
-                is_trun = is_truncate_x(split2_x, bbox)
-                if is_trun:
-                    split_suitable = False
-                    break
-            if split_suitable:
-                has_find_split = True
-                break
-            else:
-                try_num += 1
-        if has_find_split == False:
-            return img1, bbox_info_list1
-        
-        # merge image
-        left_width = split1_x + 1
-        right_width = cols2 - split2_x
-        new_height = max(rows1, rows2)
-        new_width = left_width + right_width
-        new_img = np.ones((new_height, new_width, 3), dtype=np.uint8)
-        new_img *= 255
-        new_img[0:rows1, 0:left_width, :] = img1[:, 0:left_width, :]
-        new_img[0:rows2, left_width:left_width+right_width, :] = img2[:, split2_x:cols2, :]
-        
-        # merge new bbox list
-        _bbox_info_list = []
+    
+def RandomMerge(img1, bbox_info_list1, img2, bbox_info_list2, probability):
+    # find split position of image1
+    rows1, cols1, channel = img1.shape
+    max_try_num = 10
+    try_num = 1
+    has_find_split = False
+    split1_x = 0
+    while try_num <= max_try_num:
+        crop_ratio = random.uniform(0.3, 0.7)
+        split1_x = int(cols1 * crop_ratio)
+        split_suitable = True
         for bbox_info in bbox_info_list1:
             bbox = bbox_info['bbox']
-            if bbox[0] + bbox[2] - 1 <= split1_x:
-                # add this bbox
-                _bbox_info_list.append(bbox_info)
+            is_trun = is_truncate(split1_x, bbox)
+            if is_trun:
+                split_suitable = False
+                break
+        if split_suitable:
+            has_find_split = True
+            break
+        else:
+            try_num += 1
+    if has_find_split == False:
+        return img1, bbox_info_list1
+    
+    # find split position of image2
+    rows2, cols2, channel = img2.shape
+    try_num = 1
+    has_find_split = False
+    split2_x = 0
+    while try_num <= max_try_num:
+        crop_ratio = random.uniform(0.3, 0.7)
+        split2_x = int(cols2 * crop_ratio)
+        split_suitable = True
         for bbox_info in bbox_info_list2:
             bbox = bbox_info['bbox']
-            segmentation = bbox_info['segmentation'][0]
-            if bbox[0] >= split2_x:
-                # modify bbox x coordinate
-                bbox[0] = bbox[0] - split2_x + left_width
-                # modify segmentation x coordinate
-                for idx in range(0, len(segmentation), 2):
-                    segmentation[idx] = segmentation[idx] - split2_x + left_width
-                # add this bbox
-                _bbox_info_list.append(bbox_info)
-    
-        return new_img, _bbox_info_list
-    else:
-        # merge two image by split y
-        
-        # find split position of image1
-        rows1, cols1, channel = img1.shape
-        max_try_num = 10
-        try_num = 1
-        has_find_split = False
-        split1_y = 0
-        while try_num <= max_try_num:
-            crop_ratio = random.uniform(0.3, 0.7)
-            split1_y = int(rows1 * crop_ratio)
-            split_suitable = True
-            for bbox_info in bbox_info_list1:
-                bbox = bbox_info['bbox']
-                is_trun = is_truncate_y(split1_y, bbox) ##
-                if is_trun:
-                    split_suitable = False
-                    break
-            if split_suitable:
-                has_find_split = True
+            is_trun = is_truncate(split2_x, bbox)
+            if is_trun:
+                split_suitable = False
                 break
-            else:
-                try_num += 1
-        if has_find_split == False:
-            return img1, bbox_info_list1
-        
-        # find split position of image2
-        rows2, cols2, channel = img2.shape
-        try_num = 1
-        has_find_split = False
-        split2_y = 0
-        while try_num <= max_try_num:
-            crop_ratio = random.uniform(0.3, 0.7)
-            split2_y = int(rows2 * crop_ratio)
-            split_suitable = True
-            for bbox_info in bbox_info_list2:
-                bbox = bbox_info['bbox']
-                is_trun = is_truncate_y(split2_y, bbox)
-                if is_trun:
-                    split_suitable = False
-                    break
-            if split_suitable:
-                has_find_split = True
-                break
-            else:
-                try_num += 1
-        if has_find_split == False:
-            return img1, bbox_info_list1
-        
-        # merge image
-        top_height = split1_y + 1
-        bottom_height = rows2 - split2_y
-        new_width = max(cols1, cols2)
-        new_height = top_height + bottom_height
-        new_img = np.ones((new_height, new_width, 3), dtype=np.uint8)
-        new_img *= 255
-        new_img[0:top_height, 0:cols1, :] = img1[0:top_height, :, :]
-        new_img[top_height:top_height+bottom_height, 0:cols2, :] = img2[split2_y:rows2, :, :]
-        # merge new bbox list
-        _bbox_info_list = []
-        for bbox_info in bbox_info_list1:
-            bbox = bbox_info['bbox']
-            if bbox[1] + bbox[3] - 1 <= split1_y:
-                # add this bbox
-                _bbox_info_list.append(bbox_info)
-        for bbox_info in bbox_info_list2:
-            bbox = bbox_info['bbox']
-            segmentation = bbox_info['segmentation'][0]
-            if bbox[1] >= split2_y:
-                # modify bbox x coordinate
-                bbox[1] = bbox[1] - split2_y + top_height
-                # modify segmentation x coordinate
-                for idx in range(1, len(segmentation), 2):
-                    segmentation[idx] = segmentation[idx] - split2_y + top_height
-                # add this bbox
-                _bbox_info_list.append(bbox_info)
+        if split_suitable:
+            has_find_split = True
+            break
+        else:
+            try_num += 1
+    if has_find_split == False:
+        return img1, bbox_info_list1
     
-        return new_img, _bbox_info_list
+    # merge image
+    left_width = split1_x + 1
+    right_width = cols2 - split2_x
+    new_height = max(rows1, rows2)
+    new_width = left_width + right_width
+    new_img = np.ones((new_height, new_width, 3), dtype=np.uint8)
+    new_img *= 255
+    new_img[0:rows1, 0:left_width, :] = img1[:, 0:left_width, :]
+    new_img[0:rows2, left_width:left_width+right_width, :] = img2[:, split2_x:cols2, :]
+    
+    # merge new bbox list
+    new_bbox_list = []
+    for bbox_info in bbox_info_list1:
+        bbox = bbox_info['bbox']
+        if bbox[0] + bbox[2] - 1 <= split1_x:
+            new_bbox_list.append(bbox_info)
+    for bbox_info in bbox_info_list2:
+        bbox = bbox_info['bbox']
+        if bbox[0] >= split2_x:
+            bbox[0] = bbox[0] - split2_x + left_width
+            new_bbox_list.append(bbox_info)
+    return new_img, new_bbox_list
 
 
-def is_truncate_x(split_x, bbox):
-    if bbox[0] <= split_x and bbox[0] + bbox[2] - 1 >= split_x:
+def is_truncate(split, bbox):
+    if bbox[0] <= split and bbox[0] + bbox[2] - 1 >= split:
         return True
     else:
         return False
-    
-def is_truncate_y(split_y, bbox):
-    if bbox[1] <= split_y and bbox[1] + bbox[3] - 1 >= split_y:
-        return True
-    else:
-        return False
-    
 
 def _is_bbox_intersect_cropbox(crop_box, bbox):
     '''judge if the bbox is intersect with cropbox
@@ -603,6 +503,7 @@ while cnt < generate_num:
     #img, restricted_info = RandomRotate(img, restricted_info, probability)
     
     # random merge image
+    '''
     if random.random() < probability:
         # random a restricted image to do data augmentation
         rand_idx2 = random.randint(0, imgs_total_num - 1)
@@ -612,9 +513,10 @@ while cnt < generate_num:
         restricted_info2 = restricted_info_list[rand_idx2]
         restricted_info2 = copy.deepcopy(restricted_info2) #对象拷贝，深拷贝
         img, restricted_info = RandomMerge(img, restricted_info,
-                                            img2, restricted_info2)
+                                            img2, restricted_info2, probability)
         if len(restricted_info) == 0:
             continue
+    '''
 
     # visual data augmentation result(if choose test mode)
     if test_mode == True:

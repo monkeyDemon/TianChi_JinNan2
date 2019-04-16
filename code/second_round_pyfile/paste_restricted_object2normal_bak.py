@@ -36,10 +36,10 @@ def convert_segmentation2polygen(segmentation):
 
 
 def visual_augmentation_result(img, category_id, segmentation):
-    color_list = [[0,0,0], [0,0,0], [255,0,0],
+    color_list = [[0,0,0], [0,0,0], [255,0,0], 
                   [128,128,128], [0,255,0], [0,0,255]]
     draw_width = 3
-
+    
     # draw bbox
     '''
     bbox = bbox_info['bbox']
@@ -56,7 +56,7 @@ def visual_augmentation_result(img, category_id, segmentation):
 
 
 # -----------------------------------------------------------------------------
-
+        
 # set options
 parser = argparse.ArgumentParser(
     description='verify the format of the specify image dataset',
@@ -93,7 +93,7 @@ input_json_path = args.input_json_path
 output_json_path = args.output_json_path
 generate_num = args.generate_num
 min_restricted_num = args.min_restricted_num
-max_restricted_num = args.max_restricted_num
+max_restricted_num = args.max_restricted_num 
 
 
 #normal_img_dir = "./normal/"
@@ -108,7 +108,7 @@ max_restricted_num = args.max_restricted_num
 if not os.path.exists(save_result_dir):
     os.makedirs(save_result_dir)
 
-# get init json infomations
+# get init json informations
 with open(input_json_path, 'r') as load_f:
     load_dict = json.load(load_f)
 annotations = load_dict["annotations"]
@@ -150,25 +150,22 @@ while cnt < generate_num:
         restricted_rand_idx = random.randint(0, restricted_total_num - 1)
         restricted_info = restricted_info_list[restricted_rand_idx]
         restricted_info = copy.deepcopy(restricted_info)
-
+        
         restricted_img_path = restricted_info['restricted_img_path']
         restricted_obj_category = restricted_info['category_id']
         bbox = restricted_info['bbox']
         segmentation = restricted_info['segmentation'][0]
         area = restricted_info['area']
-
+        
         # load restricted object image
         restricted_obj = cv2.imread(restricted_img_path, 1)
         res_rows, res_cols, res_channel = restricted_obj.shape
-
+        
         # random the paste position
         safety_boundary = 10
-        try:
-            x_start = random.randint(safety_boundary, cols - res_cols - safety_boundary - 1)
-            y_start = random.randint(safety_boundary, rows - res_rows - safety_boundary - 1)
-        except ValueError:
-            continue
-
+        x_start = random.randint(safety_boundary, cols - res_cols - safety_boundary - 1)
+        y_start = random.randint(safety_boundary, rows - res_rows - safety_boundary - 1)
+        
         for x_offset in range(res_cols):
             for y_offset in range(res_rows):
                 # if current point in object(use segmentation to judge)
@@ -176,8 +173,8 @@ while cnt < generate_num:
                 in_object = isPointWithinPoly([x_offset,y_offset], poly)
                 if in_object:
                     img_normal[y_start+y_offset, x_start+x_offset, :] = restricted_obj[y_offset, x_offset, :]
-
-        # modify infomations
+        
+        # modify informations
         # modify bbox
         bbox[0] += x_start
         bbox[1] += y_start
@@ -201,7 +198,7 @@ while cnt < generate_num:
     for idx, segmentation in enumerate(segmentation_list):
         img_normal = visual_augmentation_result(img_normal, category_list[idx], segmentation)
     '''
-
+     
     # save paste image
     save_path = os.path.join(save_result_dir, file_name)
     cv2.imwrite(save_path, img_normal)

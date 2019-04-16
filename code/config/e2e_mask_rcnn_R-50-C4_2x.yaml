@@ -38,6 +38,20 @@ TEST:
   SCALE: 800
   MAX_SIZE: 1333
   NMS: 1.0
+  #RPN_NMS_THRESH: 1.0
+  #BBOX_AUG:
+    #ENABLED: True
+    #H_FLIP: True
+    #SCALE_H_FLIP: True
+    #SCALE_SIZE_DEP: True
+    #ASPECT_RATIO_H_FLIP: True
+  #MASK_AUG:
+    #ENABLED: True
+    #H_FLIP: True
+    #SCALE_H_FLIP: True
+    #ASPECT_RATIO_H_FLIP: True
+  #BBOX_VOTE:
+    #ENABLED: True
   FORCE_JSON_DATASET_EVAL: True
   SOFT_NMS:
     ENABLED: False

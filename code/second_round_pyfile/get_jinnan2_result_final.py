@@ -245,7 +245,7 @@ def main(args):
                         np.save(class_save_path,save_numpy)
                 vis_utils.vis_one_image(
                   im[:, :, ::-1],  # BGR -> RGB for visualization
-                  im_name,
+                  im_name_,
                   args.output_dir,
                   cls_boxes,
                   cls_segms,

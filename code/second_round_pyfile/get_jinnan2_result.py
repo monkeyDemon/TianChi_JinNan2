@@ -209,7 +209,7 @@ def main(args):
         #print("$$$$$$$$$$$$$$$$$$$$$$")
         vis_utils.vis_one_image(
             im[:, :, ::-1],  # BGR -> RGB for visualization
-            im_name,
+            im_name_,
             args.output_dir,
             cls_boxes,
             cls_segms,

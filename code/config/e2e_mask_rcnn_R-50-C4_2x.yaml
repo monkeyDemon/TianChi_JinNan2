@@ -44,13 +44,13 @@ TEST:
     #ENABLED: True
     #H_FLIP: True
     #SCALE_H_FLIP: True
-    #SCALE_SIZE_DEP: True
+    ##SCALE_SIZE_DEP: True #can not apply
     #ASPECT_RATIO_H_FLIP: True
-  #MASK_AUG:
-    #ENABLED: True
-    #H_FLIP: True
-    #SCALE_H_FLIP: True
-    #ASPECT_RATIO_H_FLIP: True
+  MASK_AUG:
+    ENABLED: True
+    H_FLIP: True
+    SCALE_H_FLIP: True
+    ASPECT_RATIO_H_FLIP: True
   #BBOX_VOTE:
     #ENABLED: True
   FORCE_JSON_DATASET_EVAL: True

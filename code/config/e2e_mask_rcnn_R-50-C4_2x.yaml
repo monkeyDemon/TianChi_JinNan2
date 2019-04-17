@@ -39,13 +39,13 @@ TEST:
   MAX_SIZE: 1333
   NMS: 1.0
   COMPETITION_MODE: False
-  #RPN_NMS_THRESH: 1.0
-  #BBOX_AUG:
-    #ENABLED: True
-    #H_FLIP: True
-    #SCALE_H_FLIP: True
+  #RPN_NMS_THRESH: 0.7
+  BBOX_AUG:
+    ENABLED: True
+    H_FLIP: True
+    SCALE_H_FLIP: True
     ##SCALE_SIZE_DEP: True #can not apply
-    #ASPECT_RATIO_H_FLIP: True
+    ASPECT_RATIO_H_FLIP: True
   MASK_AUG:
     ENABLED: True
     H_FLIP: True

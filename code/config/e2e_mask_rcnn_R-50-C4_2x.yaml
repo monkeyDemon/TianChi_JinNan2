@@ -40,12 +40,12 @@ TEST:
   NMS: 1.0
   COMPETITION_MODE: False
   #RPN_NMS_THRESH: 0.7
-  BBOX_AUG:
-    ENABLED: True
-    H_FLIP: True
-    SCALE_H_FLIP: True
+  #BBOX_AUG:
+    #ENABLED: True
+    #H_FLIP: True
+    #SCALE_H_FLIP: True
     ##SCALE_SIZE_DEP: True #can not apply
-    ASPECT_RATIO_H_FLIP: True
+    #ASPECT_RATIO_H_FLIP: True
   MASK_AUG:
     ENABLED: True
     H_FLIP: True

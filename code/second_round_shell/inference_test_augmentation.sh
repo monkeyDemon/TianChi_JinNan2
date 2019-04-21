@@ -4,7 +4,7 @@ rm -rf ../model/test_visualization_jpg/*
 rm -rf ../model/test_visualization_jpg.zip
 rm -rf ../model/npy/*
 python ../second_round_pyfile/get_jinnan2_result_augmentation.py \
---cfg ../config/2gpu_test_e2e_mask_rcnn_R-50-C4_2x.yaml \
+--cfg ../config/e2e_mask_rcnn_R-50-C4_2x.yaml \
 --output-dir ../model/test_visualization_jpg \
 --image-ext jpg \
 --output-ext jpg \

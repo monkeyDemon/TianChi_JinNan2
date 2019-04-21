@@ -10,7 +10,7 @@ rm -rf ../Detectron/detectron/datasets/data/jinnan2/*
 
 echo "start split dataset..."
 python ../second_round_pyfile/split_train_val.py --restricted_jpg_dir ../../data/ProcessData/train_val_jpg \
---input_json_path ../../data/ProcessData/train_diffcult.json \
+--input_json_path ../../data/ProcessData/train_position.json \
 --val_rate 0.025
 #--input_json_path ../../data/Second_round_data/jinnan2_round2_train_20190401/train_restriction.json
 

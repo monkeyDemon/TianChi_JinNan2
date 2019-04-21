@@ -57,5 +57,5 @@ TEST:
   SOFT_NMS:
     ENABLED: False
   RPN_PRE_NMS_TOP_N: 6000
-  RPN_POST_NMS_TOP_N: 1000
+  RPN_POST_NMS_TOP_N: 100
 OUTPUT_DIR: ../model/mask_model

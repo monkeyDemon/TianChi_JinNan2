@@ -14,7 +14,7 @@ echo "finish"
 echo "start process 0 with gpu 0"
 py_file='../second_round_pyfile/get_jinnan2_result_augmentation_mutil.py'
 cfg_file='../config/e2e_mask_rcnn_R-101-FPN_2x.yaml'
-model_weights='../model/mask_model/train/jinnan2_train/generalized_rcnn/model_final.pkl'
+model_weights='../model/mask_model/model_final.pkl'
 
 test_img_dir='../../data/ProcessData/jinnan2_round2_test_a_20190401_sigmoid_0'
 gpu_id=0

@@ -2,6 +2,8 @@
 # install wget
 apt install wget
 apt install lrzsz
+apt install git
+apt install zip
 
 # install cudnn
 tar -xvf cudnn-9.0-linux-x64-v7.3.1.20.tgz
@@ -18,7 +20,7 @@ sudo apt install libnccl2=2.4.2-1+cuda9.0 libnccl-dev=2.4.2-1+cuda9.0
 wget https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/Anaconda2-5.3.1-Linux-x86_64.sh
 bash Anaconda2-5.3.1-Linux-x86_64.sh -y
 
-cp cuda/lib6/libcudnn.so.7 ~/anaconda2/lib
+cp cuda/lib64/libcudnn.so.7 ~/anaconda2/lib
 
 # install tensorflow
 pip install tensorflow-gpu==1.6.0
@@ -35,11 +37,15 @@ git clone https://github.com/cocodataset/cocoapi.git
 cd cocoapi/PythonAPI
 make install
 python setup.py install --user
+cd ../../
 
 # active Detectron 
 pip install -r ../Detectron/requirements.txt
+pip install PyHamcrest
+pip install argparse
 cd ../Detectron
 make
+cd ../install/
 
 # install zlib
 tar -xvf ./zlib-1.2.9.tar.gz
@@ -48,3 +54,4 @@ sudo -s
 ./configure; make; make install
 cd /lib/x86_64-linux-gnu
 ln -s -f /usr/local/lib/libz.so.1.2.9/lib libz.so.1
+cd ~

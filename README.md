@@ -1,159 +1,131 @@
-# 使用说明
+# 天池竞赛-津南数字制造算法挑战赛【赛场二】解决方案分享
 
-# 一、算法概述
+## 前言
 
-算法的核心模型为二分类resnet50模型和目标检测模型retinanet。
+[竞赛页面](https://tianchi.aliyun.com/competition/entrance/231703/introduction?spm=5176.12281957.1004.5.38b04c2aHXG8h5)
 
-二分类resnet50网络我们使用keras进行训练。
+`团队名BugFlow，最终排名35/2157`
 
-目标检测网络retinanet我们使用FaceBook开源的Detectron框架进行训练。
+虽然成绩一般，但是作为一支目标检测领域的新手队伍，仅仅有一块1070显卡，从零开始拿到这个排名，也算有一些经验可以拿出来分享，包括一些针对这个比赛我们想出的一些idea，算是抛砖引玉吧，期待能够和排名靠前的大佬多多交流。
 
-通过二分类网络对待诊断图像是否包含违禁品进行过滤，从而有效滤除明显不包含违禁品但却杂乱的图像，从而降低后一阶段目标检测网络的虚警率。
-
-最终使用目标检测网络对图像中包含的违禁品的种类及位置进行预测。
+[源码下载](https://github.com/monkeyDemon/TianChi_JinNan2)
 
 
-# 二、安装
+## 二、框架选择
 
-运行如下命令，将会自动安装除CUDA，CUDNN，及NCCL外的所有依赖环境及深度学习框架
+这个比赛实际上就是一个目标检测比赛，初赛要求对图像中的违禁品出现的位置进行检测，复赛在有效检测目标的同时要求输出高质量的实例分割。
+
+对于框架选择，如我们的队名`BugFlow`一样，由于我们队伍的成员都是以tensorflow作为工具的，我们最初选择的框架是google开源的[Tensorflow Object Detection API](https://github.com/tensorflow/models/tree/master/research/object_detection), 无奈训练效果一直不理想。后面果断切换了FaceBook开源的[Detectron](https://github.com/facebookresearch/Detectron), 成绩一下就上升不少，也是体会了一回判教一时爽，一直判教一直爽的感觉。
+
+所以这里不得不说一下，一个好的目标检测框架真的是事半功倍，从我们组的经历来说，Detectron无论从准确性、易用性还是扩展性来说都是一个不错的框架。不知道排名前5的大佬使用的是什么框架，望赐教！很想学习一下~
+
+## 三、解决方案概述
+
+### 3.1 模型选择
+
+复赛我们的选择的是 End-to-End Mask R-CNN 作为的baseline, backbone 选择的是 resnet101-FPN
+
+之所以选择FPN结构是因为本竞赛中，待检测违禁品的尺度大小不一，且包含很多小物体，我们认为feature pyramid networks能够更好的解决这个问题。
+
+### 3.2 数据增强
+
+在我训练分类网络的经验中，在合理的范围内尽可能的进行丰富的数据增强能够大幅提升模型的性能。
+
+显然，这个技能同样能应用于目标检测中，唯一的问题时，在变换图像的同时，需要同时对 bounding box 或 mask 进行相应的变换。当然，这仅仅是一个稍有难度的编程任务，难不倒大家的。
+
+需要注意的是，Detectron自带了水平翻转的数据增强。
+
+我们的数据增强文件实现在`/path/to/project/code/second_round_pyfile/data_augmentation_position_bak.py`，其中实现了水平、竖直翻转，放大（相当于crop操作），缩小这四个最基本的数据增强方法。
+
+此外，我们还尝试了两种独特的数据增强，一种是类似于随机拼接两种图的增强，一种是随机贴图的增强，效果如下：
+
+随机拼接两种图的效果示例：
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/pinjie.jpg)
+
+随机使用违禁品进行贴图的示例：
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/paste_normal.jpg)
+
+遗憾的是，虽然这两种方法表面上极大的丰富了样本集的规模，但并没有取得很好的效果，我们认为这可能和一定程度的破坏了样本原有的数据分布有关。最终我们也没有使用这两种方法。
+
+### 3.3 使用二分类网络辅助
+
+比赛的过程中，我们发现有两个类型，蓝色小电池和大个的绿色铁壳打火机，特征不太清晰，很容易混淆。
+
+如果单纯使用mask rcnn，模型会变得相对激进，将很多长相相似的物体误判为违禁品，造成成绩很低。
+
+因此，为了权衡这个问题，我们考虑使用一个二分类网络，首先对待检测图片进行判别，若认为包含违禁品，再交给mask rcnn模型进行预测。
+
+有了这个想法之后，我直接使用之前积累的Keras实现的[resnet50 demo](https://github.com/monkeyDemon/AI-Toolbox/tree/master/computer_vision/image_classification_keras/resNet_template)进行验证。
+
+经过阈值的调试后，二分类能够达到100%召回，98%准确率。这样，大概率不会漏掉含违禁品的图片的情况下，mask rcnn 虚警的概率大大的降低了，成绩也提高了很多。
+
+### 3.4 预处理
+
+我们还对数据集进行了简单的分析，发现我们的目标场景的图片的像素值普遍偏高，类似下面这样：
+
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/b_src.png)
+
+因此我们认为可以对数据进行预处理，大体思路是对像素值进行调整，使其更均匀的分布在0-255的范围内。
+
+为此，我设计了3种不同的预处理方法，其中最简单的一个就是类似下图的一个简单映射：
+
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/erci.png)
+
+它达到的效果类似下面这样：
+
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/b_src.png)![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/b_sigmoid.png)
+
+三种预处理的效果示例：
+
+原图：
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/2_src.jpg)
+
+预处理1：
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/2_sigmoid.jpg)
+
+预处理2：
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/2_poly.jpg)
+
+预处理3：
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/2_contrast.jpg)
+
+其中，通过不断地尝试和提交测试分数，我们发现预处理1对于二分类的accuracy提升有明显帮助，预处理3对mask rcnn的性能有微弱提升（也可能是随机因素导致，还不敢确定）
+
+至此，我已经将我们认为所有可能值得分享的信息介绍了，还望排名靠前的大佬不吝赐教~~~
+
+对于大多数伙伴，读到这里就可以了~
+
+如果你对我们代码的详细信息甚至复现感兴趣，请继续往下看，我简单的介绍一下。
+
+## 四、安装
+
+我们代码的运行环境及主要依赖为：
+
+Ubuntu/Centos + CUDA9 + CUDNN7 + NCCL + Anaconda2 + Keras2.2.4 + PyTorch
+
+初赛我们使用的显卡是可怜的NVIDIA GTX1070，复赛有了阿里云代金卷使用的是P100
+
+运行如下命令，自动安装依赖环境及深度学习框架
+
 ```
 $ cd /path/to/project/code/install
 $ ./install_requirements.sh
 ```
-详见`project/code/README.md`
 
-# 三、推理（提交结果复现）
+详见`project/code/README.md`，若由于各种没有考虑到的情况安装不能顺利进行，还请大家简单分析安装脚本自行安装环境。
 
-最终提交的`json`文件在`project/submit/json`目录下保存, 其中`2019-03-26-21-40-53.json`是初赛B榜的最终提交版本。
+## 五、复现
 
-复现`2019-03-26-21-40-53.json`文件需要两个模型权重文件，分别是：
+初赛时还处于摸索阶段，成绩也只有89名，初赛的复现就不做介绍了。大家有兴趣可以看下初赛提交时我们编写的 ROUND1_README，我们对如何复现我们的结果进行了说明。
 
-`project/code/model/object_detection_model`下的目标检测模型权重文件`model_final.pkl`
+复赛阶段的代码位于`project/code/second_round_pyfile`中，相应的运行脚本位于`project/code/second_round_shell`中，我们对这些脚本进行了编号，简单的阅读确定参数并依次执行即可~
 
-和`/project/code/model/cnn_model`下的二分类CNN模型权重文件`resnet50_classify2_sigmoid_final.h5`
+![pinjie](https://raw.githubusercontent.com/wiki/monkeyDemon/AI-Toolbox/readme_image/tianchi_jinnan2/shell.png)
 
-提交的代码文件中已经包含了上述的两个训练好的模型文件，在第四部分`训练`中将会详细介绍如何复现训练的过程。
+## 六、联系方式
 
-下面介绍初赛B榜结果的推理过程
+参加比赛也是一个交流的过程，本人现在作业帮的反作弊团队担任算法工程师，期待和各位算法从业者进行技术上的交流~
 
-### 3.1 预处理
-首先解压出B榜测试集`jinnan2_round1_test_b_20190326`，放置于`project/data/First_round_data`下
+加好友、技术交流、内推请联系我，本人邮箱anshengmath@163.com。
 
-然后对B榜测试集进行预处理，运行如下脚本：
-```
-project/code/shell$ ./pre_process_sigmoid.sh
-```
-该脚本读取`project/data/First_round_data/jinnan2_round1_test_b_20190326`下的数据，并对图片进行了一种类似于sigmoid函数的映射,我们认为这有助于提升模型性能。预处理后的图片存储在`project/data/ProcessData/jinnan2_round1_test_b_20190326_sigmoid`中，这个过程可能会提示一些文件夹不存在的错误，是因为没有解压其他数据造成，对推理过程不产生影响。
-
-### 3.2 推理二分类模型预测结果
-
-运行如下脚本：
-```
-project/code/classify_keras$ ./second_stage_inference_classify_result.sh
-```
-该脚本将会加载训练好的二分类CNN模型，对测试集中每张图片是否为限制品进行推理，结果记录在`project/data/ProcessData/cnn_judgement_result.json`中
-
-### 3.3 推理目标检测模型得到最终结果
-
-运行如下脚本：
-```
-project/code/shell$ ./inference.sh
-```
-该脚本将会加载训练的目标检测模型，结合二分类模型的预测结果，在`project/submit/json`下按照运行时间产出最终的json文件，例如`2019-03-27-17-07-48.json`
-
-
-# 四、训练（训练过程复现）
-
-## 复现模型的流程大致为
-
-1.数据准备，将比赛数据置于 project/data/First_round_data下
-
-2.下载预训练模型
-
-3.于 project/code/shell 和 project/code/classify_keras 目录下运行shell脚本，完成各种预处理工作及模型的训练。
-
-4.按照第三节所述进行模型推理得到最终结果。
-
-### 4.1 数据准备
-
-将比赛数据置于 project/data/First_round_data下，并解压
-
-### 4.2 下载预训练模型
-
-下载目标检测网络RetinaNet的预训练模型，置于`project/code/model/pre_train_model`下
-https://dl.fbaipublicfiles.com/detectron/ImageNetPretrained/MSRA/R-50.pkl
-
-下载CNN分类模型resnet50预训练模型，置于`project/code/model/pre_train_model`下
-https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5
-
-### 4.3 模型训练
-
-全程分为三个过程，预处理阶段、训练阶段和预测阶段，其中训练阶段细分为如下的三个阶段。
-
-**预处理阶段**
-
-依次运行如下脚本：
-
-```
-project/code/shell$ ./pre_process_sigmoid.sh
-project/code/shell$ ./pre_process_extract_restricted.sh
-project/code/shell$ ./pre_process_modified_model.sh
-project/code/shell$ ./pre_process_get_null_json.sh
-```
-
-**训练第一阶段**
-
-为了权衡模型的precision和recall，第一阶段将会训练一个最基础的模型，该模型用于筛选出容易被误认为包含违禁品的正常图片。将这些图片加入后续的训练中将有助于降低模型虚警率。
-
-依次运行如下脚本：
-
-划分出训练集和验证集
-```
-project/code/shell$ ./first_stage_split_dataset.sh
-```
-
-进行第一阶段训练
-```
-project/code/shell$ ./first_stage_train.sh
-```
-
-推断出容易被误认为包含违禁品的正常图片
-```
-project/code/shell$ ./first_stage_inference_normal.sh
-project/code/shell$ json_path='json_file_name.json'
-project/code/shell$ ./first_stage_split_normal.sh $json_path  
-```
-其中，`first_stage_inference_normal.sh`脚本将会在`project/submit/json`下生成一个json标注文件，由于该文件按照运行时间命名，因此需要手动指定json的文件名。
-
-将`json_file_name.json`替换为实际产生的json文件的文件名。
-
-例如：json_path='2019-03-28-16-16-56.json'
-
-**训练第二阶段**
-
-依次运行如下脚本：
-
-```
-project/code/shell$ ./second_stage_generate_data.sh
-project/code/shell$ ./second_stage_split_dataset.sh
-project/code/shell$ ./second_stage_train.sh
-```
-
-训练二分类模型，依次运行如下脚本（注意切换路径）：
-```
-project/code/classify_keras$ ./second_stage_split_dataset.sh
-project/code/classify_keras$ ./second_stage_train_classify_model.sh
-project/code/classify_keras$ ./second_stage_inference_classify_result.sh
-```
-
-
-**训练第三阶段**
-
-依次运行如下脚本：
-```
-project/code/shell$ ./third_stage_data_augmentation.sh
-project/code/shell$ ./third_stage_generate_diffcult_data.sh
-project/code/shell$ ./third_stage_split_dataset.sh
-project/code/shell$ ./third_stage_train.sh
-project/code/shell$ ./third_stage_draw_learning_curve.sh
-```
+此外，我们团队一位靠谱的小伙伴正在打算找博导，希望大家帮忙推荐呀，他的联系方式zhaoyh@ncepu.cn
